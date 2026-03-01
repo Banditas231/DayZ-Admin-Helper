@@ -1,0 +1,3 @@
+Put SteamID64 here, one per line (17 digits).
+Example:
+76561198000000000
