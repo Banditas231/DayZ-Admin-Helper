@@ -43,5 +43,4 @@ Your server’s `ban.txt` expects the **44-character player UID** (as in .ADM lo
 
 ## License
 
-MIT License
-
+Use and share as you like.

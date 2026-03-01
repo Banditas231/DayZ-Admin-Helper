@@ -88,7 +88,7 @@ if __name__ == "__main__":
     os.chdir(script_dir)
 
     if len(sys.argv) >= 2 and sys.argv[1].strip():
-        file_path = sys.argv[1].strip().strip('"')
+        file_path = sys.argv[1].strip().strip('"').strip("'")
     else:
         json_path = os.path.join(script_dir, "playernames.json")
         txt_path = os.path.join(script_dir, "players.txt")
@@ -99,12 +99,16 @@ if __name__ == "__main__":
         print("Place playernames.json or players.txt in this folder, or drag a .json/.txt file onto the .bat")
         sys.exit(1)
 
+    print(f"Reading: {file_path}")
     file_path_lower = file_path.lower()
     if file_path_lower.endswith(".json"):
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            lines = [str(s).strip() for s in data.get("players", []) if str(s).strip().isdigit() and len(str(s).strip()) == 17]
+            raw = data.get("players", [])
+            lines = [str(s).strip() for s in raw if str(s).strip().isdigit() and len(str(s).strip()) == 17]
+            if not lines and raw:
+                print(Fore.YELLOW + f"JSON 'players' has {len(raw)} item(s) but none are valid SteamID64 (must be 17 digits).")
         except (json.JSONDecodeError, TypeError) as e:
             print(Fore.RED + f"Invalid JSON: {e}")
             sys.exit(1)
@@ -113,9 +117,13 @@ if __name__ == "__main__":
             lines = [line.strip() for line in f if line.strip() and line.strip().isdigit() and len(line.strip()) == 17]
 
     if not lines:
-        print(Fore.RED + "No valid SteamID64 found (empty file or invalid 'players' array in JSON).")
-        print("Use players.txt: one SteamID64 per line (17 digits).")
+        print(Fore.RED + "No valid SteamID64 found.")
+        if file_path_lower.endswith(".json"):
+            print("JSON must have: \"players\": [\"76561198...\", \"76561198...\"] (17-digit IDs).")
+        else:
+            print("TXT: one SteamID64 per line (17 digits), no other text on the line.")
         sys.exit(1)
+    print(f"Found {len(lines)} SteamID64 to check.\n")
 
     banned_list = []
     for steamid in lines:
